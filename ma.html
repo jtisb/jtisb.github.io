@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starblast Mods Archive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #0a0e17;
+            color: #e0e0e0;
+            padding: 20px;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 10% 20%, rgba(28, 58, 173, 0.1) 0%, transparent 20%), 
+                              radial-gradient(circle at 90% 80%, rgba(138, 43, 226, 0.1) 0%, transparent 20%);
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, rgba(16, 36, 94, 0.8) 0%, rgba(28, 58, 173, 0.8) 100%);
+            border-radius: 10px;
+            border: 1px solid #2a3a6e;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4ecdc4, #45b7d1, #96ceb4);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            background: linear-gradient(90deg, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            color: #a0c8ff;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .search-box, .filter-box {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .search-box input, .filter-box select {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid #3a4a8e;
+            background-color: #0f1529;
+            color: #e0e0e0;
+            font-size: 1rem;
+        }
+        
+        .search-box input:focus, .filter-box select:focus {
+            outline: none;
+            border-color: #4ecdc4;
+        }
+        
+        .filter-box select {
+            cursor: pointer;
+        }
+        
+        .mods-container {
+            background: rgba(16, 25, 48, 0.8);
+            border-radius: 10px;
+            border: 1px solid #2a3a6e;
+            overflow: hidden;
+        }
+        
+        .mod-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #2a3a6e;
+            transition: all 0.2s ease;
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+        }
+        
+        .mod-item:hover {
+            background: rgba(28, 58, 173, 0.2);
+            padding-left: 25px;
+            border-left: 3px solid #4ecdc4;
+        }
+        
+        .mod-item:last-child {
+            border-bottom: none;
+        }
+        
+        .mod-item:hover .mod-name {
+            color: #4ecdc4;
+        }
+        
+        .mod-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-bottom: 5px;
+            transition: color 0.2s ease;
+        }
+        
+        .mod-author {
+            font-size: 0.9rem;
+            color: #a0a0c0;
+        }
+        
+        .author-link {
+            color: #a0c8ff;
+            text-decoration: none;
+            transition: color 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .author-link:hover {
+            color: #4ecdc4;
+            text-decoration: underline;
+        }
+        
+        .mod-link-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #4a5a9e;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .mod-item:hover .mod-link-icon {
+            opacity: 1;
+        }
+        
+        .mods-count {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #a0c8ff;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 0 10px;
+            }
+            
+            .mod-item {
+                padding: 12px 15px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Starblast Mods Archive</h1>
+            <p class="subtitle">A collection of Starblast mods by the community</p>
+        </header>
+        
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search mods by name...">
+            </div>
+            <div class="filter-box">
+                <select id="authorFilter">
+                    <option value="">All Authors</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="mods-count">
+            <span id="modsCount">0</span> mods available
+        </div>
+        
+        <div class="mods-container" id="modsContainer">
+        </div>
+    </div>
+
+    <script>
+        const authorUrls = {
+            "Goldman": "https://github.com/GoldmanAeroSpace",
+            "Finalizer": "https://github.com/StarblastFinalizer",
+            "Nanoray": "https://github.com/nanoraySB",
+            "Gilles": "https://github.com/pmgl",
+            "Notus": "https://github.com/123-Notus",
+            "Bhpsngum": "https://github.com/Bhpsngum",
+            "45rfew": "https://github.com/45rfew/"
+        };
+
+        const modsData = [
+            { 
+                name: "Escalation", 
+                author: "45rfew", 
+                url: "https://github.com/pmgl/starblast-modding/blob/master/mods/escalation.js" 
+            },
+            { 
+                name: "Starblast Dueling Championship", 
+                author: "Thuliux, Bhpsngum", 
+                url: "https://github.com/pmgl/starblast-modding/blob/master/mods/dueling_championship.js" 
+            },
+            { 
+                name: "Flintlock Dueling", 
+                author: "Nanoray", 
+                url: "https://github.com/nanoraySB/flintlock-light" 
+            },
+            { 
+                name: "Re:Arena Mode", 
+                author: "Bhpsngum", 
+                url: "https://github.com/Bhpsngum/Starblast-Re-Arena/tree/main/releases" 
+            },
+            { 
+                name: "U-Series", 
+                author: "Finalizer", 
+                url: "https://github.com/pmgl/starblast-modding/blob/master/mods/useries.js" 
+            },
+            { 
+                name: "Alien Intrusion", 
+                author: "Goldman", 
+                url: "https://github.com/pmgl/starblast-modding/blob/master/mods/alienintrusion.js" 
+            },
+            { 
+                name: "Battle Royale", 
+                author: "Gilles", 
+                url: "https://github.com/pmgl/starblast-modding/blob/master/mods/battleroyale.js" 
+            },
+            { 
+                name: "Nautic Series", 
+                author: "Goldman", 
+                url: "https://github.com/pmgl/starblast-modding/blob/master/mods/nauticseries.js" 
+            },
+            { 
+                name: "Starblast Racing Championship", 
+                author: "Goldman", 
+                url: "https://github.com/GoldmanAerospace/SRC-All-track-codes-/" 
+            },
+            { 
+                name: "Destroy The Mothership", 
+                author: "45rfew", 
+                url: "https://github.com/pmgl/starblast-modding/blob/master/mods/destroy_the_mothership.js" 
+            },
+            { 
+                name: "Capture The Flag", 
+                author: "Bhpsngum", 
+                url: "https://github.com/pmgl/starblast-modding/blob/master/mods/capture_the_flag.js" 
+            },
+            { 
+                name: "Rumble", 
+                author: "45rfew", 
+                url: "https://github.com/pmgl/starblast-modding/blob/master/mods/rumble.js" 
+            },
+            { 
+                name: "MCST", 
+                author: "SChickenMan", 
+                url: "https://github.com/pmgl/starblast-modding/blob/master/mods/mcst.js" 
+            },
+            { 
+                name: "Private Dueling", 
+                author: "45rfew", 
+                url: "https://github.com/Bhpsngum/starblast-snippets/blob/master/mods/pds.js" 
+            },
+            { 
+                name: "Strawberry", 
+                author: "Nova", 
+                url: "https://github.com/Nova-was-taken/Various-mod-codes/blob/main/Strawberry%20mod" 
+            },
+            { 
+                name: "Pirate Mod", 
+                author: "Finalizer", 
+                url: "https://pastebin.com/7rNLrjAN" 
+            },
+            { 
+                name: "Piranha Mod", 
+                author: "45rfew", 
+                url: "https://github.com/45rfew/Starblast-mods-n-objs/tree/master/Mods/Piranha%20mod.js" 
+            },
+            { 
+                name: "Team Deathmatch", 
+                author: "Bhpsngum", 
+                url: "https://github.com/Bhpsngum/TDM" 
+            },
+            { 
+                name: "Tag Mode", 
+                author: "Bhpsngum", 
+                url: "https://github.com/Bhpsngum/StarblastTagMode" 
+            },
+            { 
+                name: "Football Mode", 
+                author: "Uranus", 
+                url: "https://pastebin.com/9rfN2QKi" 
+            },
+            { 
+                name: "Starblast OP", 
+                author: "The Fish Professor", 
+                url: "https://github.com/Bhpsngum/starblast-snippets/blob/master/mods/Starblast_OP_(by_TheFish-ProfessorPi31415).js" 
+            },
+            { 
+                name: "AOW", 
+                author: "Gilles, Goldman", 
+                url: "https://github.com/GoldmanAerospace/AOW" 
+            }
+        ];
+
+        function createAuthorElement(authorString) {
+            const authors = authorString.split(',').map(a => a.trim());
+            
+            return authors.map(author => {
+                if (authorUrls[author]) {
+                    return `<a href="${authorUrls[author]}" target="_blank" class="author-link">${author}</a>`;
+                }
+                return author;
+            }).join(', ');
+        }
+
+        function getAllAuthors() {
+            const authors = new Set();
+            modsData.forEach(mod => {
+                const authorList = mod.author.split(',').map(a => a.trim());
+                authorList.forEach(author => {
+                    if (author) authors.add(author);
+                });
+            });
+            return Array.from(authors).sort();
+        }
+
+        function populateAuthorFilter() {
+            const authorFilter = document.getElementById('authorFilter');
+            const authors = getAllAuthors();
+            
+            while (authorFilter.options.length > 1) {
+                authorFilter.remove(1);
+            }
+            
+            authors.forEach(author => {
+                const option = document.createElement('option');
+                option.value = author;
+                option.textContent = author;
+                authorFilter.appendChild(option);
+            });
+        }
+
+        function renderMods(mods) {
+            const container = document.getElementById('modsContainer');
+            const modsCount = document.getElementById('modsCount');
+            
+            modsCount.textContent = mods.length;
+            
+            container.innerHTML = '';
+            
+            if (mods.length === 0) {
+                container.innerHTML = '<div style="padding: 30px; text-align: center; color: #a0a0c0;">No mods found</div>';
+                return;
+            }
+            
+            mods.forEach(mod => {
+                const modItem = document.createElement('a');
+                modItem.className = 'mod-item';
+                modItem.href = mod.url;
+                modItem.target = "_blank";
+                
+                modItem.innerHTML = `
+                    <div class="mod-name">${mod.name}</div>
+                    <div class="mod-author">By: ${createAuthorElement(mod.author)}</div>
+                    <div class="mod-link-icon">→</div>
+                `;
+                
+                container.appendChild(modItem);
+            });
+        }
+
+        function filterMods() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const selectedAuthor = document.getElementById('authorFilter').value;
+            
+            const filteredMods = modsData.filter(mod => {
+                const nameMatch = !searchTerm || mod.name.toLowerCase().includes(searchTerm);
+                const authorMatch = !selectedAuthor || mod.author.includes(selectedAuthor);
+                
+                return nameMatch && authorMatch;
+            });
+            
+            renderMods(filteredMods);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateAuthorFilter();
+            
+            document.getElementById('searchInput').addEventListener('input', filterMods);
+            document.getElementById('authorFilter').addEventListener('change', filterMods);
+            
+            renderMods(modsData);
+        });
+    </script>
+</body>
+</html>
